@@ -15,7 +15,7 @@ By using Home Assistant, the sensors can be monitored, and the three training le
 ![pic](./media/Screenshot_20210128-122937_Home%20Assistant.png)
 
 Future plans:
-  - load cell to record the birds weight and/or prevent the platform from opening with to many birds on the CrowBox or prevent non-birds from accessing it.
+  - load cell to record the birds weight and/or prevent the platform from opening with to many birds on the CrowBox or prevent non-birds from accessing it. (work in progress)
   - webcam to view live updates and possible object detection.
   - notification sent to cell phone when sensors are triggered, to include a pic or video.
   
