@@ -10,7 +10,8 @@ Currently there are three levels for training that match the crOS plan.
 Currently the HA CrowBox uses an Arduino ESP8266 and its planned to also support an Arduino ESP32, once the servo is working. Programming of the ESP is done thru the ESPHome intergration for Home Assistant, but could be flashed to an ESP with a default bin file.
 
 By using Home Assistant, the sensors can be monitored, and the three training levels turned on or off remotly along with restarting the Arduino. The ESP is configured to work as an ad-hoc wifi accesspoint or as a client connecting to a wifi router. The lite webserver also allows you to monitor and control the Arduino with OR without using Home Assistant.
-[pic](./Screenshot_20210128-122937_Home%20Assistant.jpg)
+[pic](./media/Screenshot_20210128-122937_Home%20Assistant.jpg)
+
 Future plans:
   - load cell to record the birds weight and/or prevent the platform from opening with to many birds on the CrowBox or prevent non-birds from accessing it.
   - webcam to view live updates and possible object detection.
