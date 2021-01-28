@@ -1,0 +1,182 @@
+esphome:
+  name: crowbox
+  platform: ESP8266
+  board: nodemcuv2
+  esp8266_restore_from_flash: true
+# esp8266 restore from flash is necessary to save the coins collect on restart of the esp8266 
+
+wifi:
+  ssid: "WIFI-Name"
+  password: "wifipass"
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Crowbox Hotspot"
+    password: "uiJ7qr80btu1"
+
+captive_portal:
+
+# webserver port and credentials
+web_server:
+  port: 80
+  auth:
+    username: admin
+    password: crowbox
+
+# Enable logging
+logger:
+
+# Enable Home Assistant API
+api:
+
+ota:
+# Global variable to record coins received
+globals:
+  - id: num_executions
+    type: int
+    restore_value: yes
+    initial_value: '1'
+sensor:
+  - platform: template
+    id: coin_count
+    name: "Coins collected"
+    accuracy_decimals: 0
+    lambda: return id(num_executions);
+  
+binary_sensor:
+# Platform sensor - pin D6
+  - platform: gpio
+    pin:  
+      number: D6
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Platform sensor"
+    device_class: occupancy
+    id: platform_sensor
+    on_press:  
+      then:
+        - if:
+            condition:
+              - switch.is_on: p2
+            then:
+            - servo.write:
+                id: platform_servo
+                level: 100.0%
+            - delay: 5s
+            - servo.write:
+                id: platform_servo
+                level: -100.0%
+            - lambda: |-
+                id(num_executions) += 1;
+  
+# Coin switch - pin D7
+  - platform: gpio
+    pin:
+      number: D7
+      mode: INPUT_PULLUP
+      inverted: true
+    name: "Coin sensor"
+    id: coin_sensor
+    on_press:
+      then:
+        - if:
+            condition:
+              and:
+                - switch.is_on: p3
+                - binary_sensor.is_on: platform_sensor
+                - binary_sensor.is_on: coin_sensor
+            then:
+            - servo.write:
+                id: platform_servo
+                level: 100.0%
+            - delay: 5s
+            - servo.write:
+                id: platform_servo
+                level: -100.0%
+            - lambda: |-
+                id(num_executions) += 1;
+
+# Platform servo config    
+servo:
+  - id: platform_servo
+    output: pwm_output
+    
+# Output to Servo - pin D5
+output:
+  - platform: esp8266_pwm
+    id: pwm_output
+    pin: D5
+    frequency: 50 Hz
+
+switch:
+  - platform: restart
+    name: "Crowbox Restart"
+#Switch 1 ON, 2 and 3 OFF
+  - platform: template
+    name: "Program One"
+    id: p1
+    restore_state: true
+    turn_on_action:
+      - servo.write:
+          id: platform_servo
+          level: 100%
+      - switch.template.publish:
+          id: p1
+          state: ON
+      - switch.turn_off: p2
+      - switch.template.publish:
+          id: p2
+          state: OFF
+      - switch.turn_off: p3
+      - switch.template.publish:
+          id: p3
+          state: OFF
+    turn_off_action:
+      - switch.template.publish:
+          id: p1
+          state: OFF
+      - servo.write:
+          id: platform_servo
+          level: -100%
+#Switch 2 ON, 1 and 3 OFF
+  - platform: template
+    name: "Program Two"
+    id: p2
+    restore_state: true
+    turn_on_action:
+      - switch.template.publish:
+          id: p2
+          state: ON
+      - switch.turn_off: p1
+      - switch.template.publish:
+          id: p1
+          state: OFF
+      - switch.turn_off: p3
+      - switch.template.publish:
+          id: p3
+          state: OFF
+    turn_off_action:
+      - switch.template.publish:
+          id: p2
+          state: OFF
+#Switch 3 ON, 1 and 2 OFF
+  - platform: template
+    name: "Program Three"
+    id: p3
+    restore_state: true
+    turn_on_action:
+      - switch.template.publish:
+          id: p3
+          state: ON
+      - switch.turn_off: p1
+      - switch.template.publish:
+          id: p1
+          state: OFF
+      - switch.turn_off: p2
+      - switch.template.publish:
+          id: p2
+          state: OFF
+    turn_off_action:
+      - switch.template.publish:
+          id: p3
+          state: OFF
